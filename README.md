@@ -2,7 +2,7 @@
 
 A retro-style arcade space shooter built with Phaser 3 and TypeScript. Defend the galaxy from endless waves of asteroids using an arsenal of upgradeable weapons.
 
-![Space Defender](screenshot.png)
+[Space Defender](https://space-defender.onrender.com/)
 
 ## Features
 
