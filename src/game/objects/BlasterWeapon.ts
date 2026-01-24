@@ -15,12 +15,7 @@ export class BlasterWeapon implements Weapon {
     this.bullets = group;
   }
 
-  fire(
-    scene: Scene,
-    ship: Ship,
-    _targetX: number,
-    _targetY: number,
-  ): void {
+  fire(scene: Scene, ship: Ship, _targetX: number, _targetY: number): void {
     if (!this.bullets) return;
 
     const bullet = new Bullet(scene, ship.x, ship.y, ship.getAimAngle());

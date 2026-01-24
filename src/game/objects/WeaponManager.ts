@@ -112,7 +112,12 @@ export class WeaponManager {
           const asteroids = asteroidGroup.getChildren() as Asteroid[];
           asteroids.forEach((asteroid) => {
             if (!asteroid.active) return;
-            const dist = Phaser.Math.Distance.Between(x, y, asteroid.x, asteroid.y);
+            const dist = Phaser.Math.Distance.Between(
+              x,
+              y,
+              asteroid.x,
+              asteroid.y,
+            );
             if (dist < (asteroid.width * asteroid.scaleX) / 2 + 10) {
               onHitAsteroid?.(asteroid, asteroid.x, asteroid.y);
             }

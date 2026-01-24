@@ -5,7 +5,12 @@ export type AsteroidSize = "large" | "medium" | "small";
 
 const ASTEROID_CONFIG: Record<
   AsteroidSize,
-  { scale: number; points: number; speed: { min: number; max: number }; mass: number }
+  {
+    scale: number;
+    points: number;
+    speed: { min: number; max: number };
+    mass: number;
+  }
 > = {
   large: { scale: 1, points: 20, speed: { min: 30, max: 60 }, mass: 3 },
   medium: { scale: 0.6, points: 50, speed: { min: 40, max: 80 }, mass: 2 },
@@ -85,7 +90,8 @@ export class Asteroid extends Phaser.Physics.Arcade.Sprite {
 
     // Use impact angle or current velocity angle as base direction
     const baseAngle =
-      impactAngle ?? Math.atan2(this.body?.velocity.y ?? 0, this.body?.velocity.x ?? 0);
+      impactAngle ??
+      Math.atan2(this.body?.velocity.y ?? 0, this.body?.velocity.x ?? 0);
 
     // Inherit some of parent's velocity
     const parentVelX = (this.body?.velocity.x ?? 0) * 0.3;

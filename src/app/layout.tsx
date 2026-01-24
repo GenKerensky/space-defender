@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Navbar } from "@/components/navbar";
 
 export const metadata: Metadata = {
-  title: "Asteroids Clone - Space Defender",
-  description: "An Asteroids clone with mouse aiming built with Phaser 3",
+  title: "Neon Cabinet",
+  description:
+    "A virtual web arcade for retro-style games. Play classics like Space Defender and more.",
+  icons: { icon: "/assets/favicon.svg" },
 };
 
 export default function RootLayout({
@@ -12,8 +15,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className="dark">
+      <body className="min-h-screen antialiased">
+        <Navbar />
+        <main className="min-h-[calc(100vh-3.5rem)]">{children}</main>
+      </body>
     </html>
   );
 }

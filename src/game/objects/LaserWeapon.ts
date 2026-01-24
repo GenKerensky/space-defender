@@ -134,9 +134,7 @@ export class LaserWeapon implements Weapon {
 
     // Check if circle contains line start or end
     const distStart = Math.sqrt(fx * fx + fy * fy);
-    const distEnd = Math.sqrt(
-      (x2 - cx) * (x2 - cx) + (y2 - cy) * (y2 - cy),
-    );
+    const distEnd = Math.sqrt((x2 - cx) * (x2 - cx) + (y2 - cy) * (y2 - cy));
 
     return distStart <= r || distEnd <= r;
   }

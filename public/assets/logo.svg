@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 32" fill="none">
+  <defs>
+    <linearGradient id="logo-fill" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#3b82f6" />
+    </linearGradient>
+  </defs>
+  <rect x="0" y="4" width="4" height="24" rx="1" fill="url(#logo-fill)" />
+  <rect x="8" y="8" width="4" height="16" rx="1" fill="url(#logo-fill)" opacity="0.8" />
+  <rect x="16" y="4" width="4" height="24" rx="1" fill="url(#logo-fill)" />
+  <text x="32" y="22" font-family="ui-monospace, monospace" font-size="18" font-weight="bold" fill="url(#logo-fill)">Neon Cabinet</text>
+</svg>
