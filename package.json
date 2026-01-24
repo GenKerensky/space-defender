@@ -1,28 +1,59 @@
 {
-    "name": "asteroids-clone",
-    "type": "module",
-    "description": "An Asteroids clone with mouse aiming built with Phaser 3",
-    "version": "1.0.0",
-    "license": "MIT",
-    "scripts": {
-        "dev": "vite --config vite/config.dev.mjs",
-        "build": "vite build --config vite/config.prod.mjs",
-        "lint": "eslint src/",
-        "lint:fix": "eslint src/ --fix",
-        "format": "prettier --write src/",
-        "format:check": "prettier --check src/"
-    },
-    "devDependencies": {
-        "@eslint/js": "^9.39.2",
-        "eslint": "^9.39.2",
-        "eslint-config-prettier": "^10.1.8",
-        "prettier": "^3.7.4",
-        "terser": "^5.39.0",
-        "typescript": "~5.7.2",
-        "typescript-eslint": "^8.52.0",
-        "vite": "^6.3.1"
-    },
-    "dependencies": {
-        "phaser": "^3.90.0"
-    }
+  "name": "asteroids-clone",
+  "type": "module",
+  "description": "An Asteroids clone with mouse aiming built with Phaser 3",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^1.52.0",
+    "@eslint/js": "^9.39.2",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.8",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.1.4",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "jsdom": "^25.0.1",
+    "lint-staged": "^15.2.11",
+    "prettier": "^3.7.4",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.52.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "next": "^16.1.4",
+    "phaser": "^3.90.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "trustedDependencies": [
+    "unrs-resolver"
+  ],
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{html,css,json,md}": [
+      "prettier --write"
+    ]
+  }
 }

@@ -1,15 +1,30 @@
+// @ts-check
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
-import eslintConfigPrettier from "eslint-config-prettier";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+import prettier from "eslint-config-prettier/flat";
 
-export default tseslint.config(
+export default [
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
-  eslintConfigPrettier,
+  ...nextVitals,
+  ...nextTs,
+  prettier,
   {
-    ignores: ["dist/", "node_modules/", "vite/"],
+    ignores: [
+      ".next/**",
+      "out/**",
+      "build/**",
+      "dist/",
+      "node_modules/",
+      "vite/",
+      "coverage/",
+      "next-env.d.ts",
+    ],
   },
   {
+    files: ["**/*.{ts,tsx,js,jsx}"],
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",
@@ -17,4 +32,4 @@ export default tseslint.config(
       ],
     },
   },
-);
+];

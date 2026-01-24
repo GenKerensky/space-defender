@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { EventBus } from "../EventBus";
 
 export class Title extends Phaser.Scene {
   private stars: { sprite: Phaser.GameObjects.Arc; speed: number }[] = [];
@@ -130,7 +131,7 @@ export class Title extends Phaser.Scene {
     engineParticles.setDepth(8);
 
     // Controls info
-    const controlsY = height * 0.70;
+    const controlsY = height * 0.7;
     const controlsText = [
       "WASD - MOVE",
       "MOUSE - AIM",
@@ -139,16 +140,11 @@ export class Title extends Phaser.Scene {
     ];
 
     controlsText.forEach((text, i) => {
-      const control = this.add.text(
-        width / 2,
-        controlsY + i * 24,
-        text,
-        {
-          fontFamily: "monospace",
-          fontSize: "14px",
-          color: "#666666",
-        },
-      );
+      const control = this.add.text(width / 2, controlsY + i * 24, text, {
+        fontFamily: "monospace",
+        fontSize: "14px",
+        color: "#666666",
+      });
       control.setOrigin(0.5);
       control.setDepth(10);
     });
@@ -212,6 +208,9 @@ export class Title extends Phaser.Scene {
 
     // Fade in
     this.cameras.main.fadeIn(1000);
+
+    // Emit event for React bridge
+    EventBus.emit("current-scene-ready", this);
   }
 
   private createStarField(): void {
@@ -219,10 +218,38 @@ export class Title extends Phaser.Scene {
 
     // Create multiple layers of stars with different speeds
     const layers = [
-      { count: 80, sizeMin: 0.5, sizeMax: 1, speedMin: 20, speedMax: 40, color: 0x444444 },
-      { count: 50, sizeMin: 1, sizeMax: 2, speedMin: 40, speedMax: 80, color: 0x666666 },
-      { count: 30, sizeMin: 1.5, sizeMax: 2.5, speedMin: 80, speedMax: 120, color: 0x888888 },
-      { count: 15, sizeMin: 2, sizeMax: 3, speedMin: 120, speedMax: 180, color: 0xaaaaaa },
+      {
+        count: 80,
+        sizeMin: 0.5,
+        sizeMax: 1,
+        speedMin: 20,
+        speedMax: 40,
+        color: 0x444444,
+      },
+      {
+        count: 50,
+        sizeMin: 1,
+        sizeMax: 2,
+        speedMin: 40,
+        speedMax: 80,
+        color: 0x666666,
+      },
+      {
+        count: 30,
+        sizeMin: 1.5,
+        sizeMax: 2.5,
+        speedMin: 80,
+        speedMax: 120,
+        color: 0x888888,
+      },
+      {
+        count: 15,
+        sizeMin: 2,
+        sizeMax: 3,
+        speedMin: 120,
+        speedMax: 180,
+        color: 0xaaaaaa,
+      },
     ];
 
     layers.forEach((layer) => {
@@ -235,8 +262,10 @@ export class Title extends Phaser.Scene {
         // Occasionally tint stars different colors
         let color = layer.color;
         const colorRoll = Math.random();
-        if (colorRoll < 0.05) color = 0x8888ff; // Blue
-        else if (colorRoll < 0.1) color = 0xff8888; // Red
+        if (colorRoll < 0.05)
+          color = 0x8888ff; // Blue
+        else if (colorRoll < 0.1)
+          color = 0xff8888; // Red
         else if (colorRoll < 0.12) color = 0xffff88; // Yellow
 
         const star = this.add.circle(x, y, size, color);

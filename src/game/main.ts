@@ -2,14 +2,14 @@ import { Boot } from "./scenes/Boot";
 import { Title } from "./scenes/Title";
 import { GameOver } from "./scenes/GameOver";
 import { Game as MainGame } from "./scenes/Game";
-import Phaser, { AUTO, Game } from "phaser";
+import Phaser, { AUTO } from "phaser";
 import { CRTShader } from "./shaders/CRTShader";
 
-const config: Phaser.Types.Core.GameConfig = {
+export const config: Phaser.Types.Core.GameConfig = {
   type: AUTO,
   width: 1024,
   height: 768,
-  parent: "game-container",
+  parent: "phaser-game",
   backgroundColor: "#000000",
   physics: {
     default: "arcade",
@@ -27,9 +27,3 @@ const config: Phaser.Types.Core.GameConfig = {
     },
   },
 };
-
-const StartGame = (parent: string) => {
-  return new Game({ ...config, parent });
-};
-
-export default StartGame;

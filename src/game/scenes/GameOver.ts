@@ -1,4 +1,5 @@
 import { Scene } from "phaser";
+import { EventBus } from "../EventBus";
 
 export class GameOver extends Scene {
   private score: number = 0;
@@ -140,5 +141,8 @@ export class GameOver extends Scene {
 
     // Fade in
     this.cameras.main.fadeIn(500);
+
+    // Emit event for React bridge
+    EventBus.emit("current-scene-ready", this);
   }
 }

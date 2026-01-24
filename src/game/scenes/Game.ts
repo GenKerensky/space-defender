@@ -4,6 +4,7 @@ import { Asteroid } from "../objects/Asteroid";
 import { Bullet } from "../objects/Bullet";
 import { Missile } from "../objects/Missile";
 import { WeaponManager } from "../objects/WeaponManager";
+import { EventBus } from "../EventBus";
 
 export class Game extends Scene {
   private ship!: Ship;
@@ -133,6 +134,9 @@ export class Game extends Scene {
 
     // Spawn initial wave
     this.spawnWave();
+
+    // Emit event for React bridge
+    EventBus.emit("current-scene-ready", this);
   }
 
   private createHUD(): void {
@@ -244,7 +248,11 @@ export class Game extends Scene {
       const x = Phaser.Math.Between(0, width);
       const y = Phaser.Math.Between(0, height);
       const brightness = Phaser.Math.Between(40, 80);
-      const color = Phaser.Display.Color.GetColor(brightness, brightness, brightness);
+      const color = Phaser.Display.Color.GetColor(
+        brightness,
+        brightness,
+        brightness,
+      );
       stars.fillStyle(color, 0.6);
       stars.fillCircle(x, y, 0.5);
     }
@@ -254,7 +262,11 @@ export class Game extends Scene {
       const x = Phaser.Math.Between(0, width);
       const y = Phaser.Math.Between(0, height);
       const brightness = Phaser.Math.Between(100, 160);
-      const color = Phaser.Display.Color.GetColor(brightness, brightness, brightness);
+      const color = Phaser.Display.Color.GetColor(
+        brightness,
+        brightness,
+        brightness,
+      );
       stars.fillStyle(color, 0.8);
       stars.fillCircle(x, y, 1);
     }
@@ -648,7 +660,11 @@ export class Game extends Scene {
 
         const explosionGraphics = this.add.graphics();
         explosionGraphics.fillStyle(0xff8800, 0.5);
-        explosionGraphics.fillCircle(explosion.x, explosion.y, explosion.radius);
+        explosionGraphics.fillCircle(
+          explosion.x,
+          explosion.y,
+          explosion.radius,
+        );
 
         this.tweens.add({
           targets: explosionGraphics,
@@ -728,7 +744,14 @@ export class Game extends Scene {
     const endAngle = startAngle + progress * Math.PI * 2;
 
     this.cooldownCircle.beginPath();
-    this.cooldownCircle.arc(centerX, centerY, radius, startAngle, endAngle, false);
+    this.cooldownCircle.arc(
+      centerX,
+      centerY,
+      radius,
+      startAngle,
+      endAngle,
+      false,
+    );
     this.cooldownCircle.strokePath();
   }
 }
