@@ -2,7 +2,6 @@ import { Scene } from "phaser";
 import { Weapon } from "./Weapon";
 import { Ship } from "./Ship";
 import { RayBeam } from "./RayBeam";
-import { Asteroid } from "./Asteroid";
 
 export class RayGunWeapon implements Weapon {
   name = "RAY GUN";
@@ -12,7 +11,6 @@ export class RayGunWeapon implements Weapon {
 
   private bullets: Phaser.Physics.Arcade.Group | null = null;
   private asteroidGroup: Phaser.Physics.Arcade.Group | null = null;
-  private onHitAsteroid?: (asteroid: Asteroid) => void;
 
   setBulletGroup(group: Phaser.Physics.Arcade.Group): void {
     this.bullets = group;
@@ -20,10 +18,6 @@ export class RayGunWeapon implements Weapon {
 
   setAsteroidGroup(group: Phaser.Physics.Arcade.Group): void {
     this.asteroidGroup = group;
-  }
-
-  setOnHitAsteroid(callback: (asteroid: Asteroid) => void): void {
-    this.onHitAsteroid = callback;
   }
 
   fire(

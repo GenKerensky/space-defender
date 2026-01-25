@@ -137,11 +137,10 @@ export class WeaponManager {
         const asteroidGroup = (weapon as RayGunWeapon)["asteroidGroup"];
         if (asteroidGroup && onHitAsteroid) {
           const asteroids = asteroidGroup.getChildren() as Asteroid[];
-          // Find the closest asteroid to the hit position
           let closestAsteroid: Asteroid | null = null;
           let closestDist = Infinity;
-          asteroids.forEach((asteroid) => {
-            if (!asteroid.active) return;
+          for (const asteroid of asteroids) {
+            if (!asteroid.active) continue;
             const dist = Phaser.Math.Distance.Between(
               x,
               y,
@@ -155,7 +154,7 @@ export class WeaponManager {
               closestDist = dist;
               closestAsteroid = asteroid;
             }
-          });
+          }
           if (closestAsteroid) {
             onHitAsteroid(
               closestAsteroid,

@@ -9,8 +9,6 @@ export class RayBeam extends Phaser.Physics.Arcade.Sprite {
   private startX: number = 0;
   private startY: number = 0;
   private beamGraphics: Phaser.GameObjects.Graphics;
-  private previousX: number = 0;
-  private previousY: number = 0;
   private asteroidGroup: Phaser.Physics.Arcade.Group | null = null;
   private onHitAsteroid?: (asteroid: Asteroid) => void;
   private hitAsteroids: Set<Asteroid> = new Set();
@@ -21,8 +19,6 @@ export class RayBeam extends Phaser.Physics.Arcade.Sprite {
     this.aimAngle = aimAngle;
     this.startX = x;
     this.startY = y;
-    this.previousX = x;
-    this.previousY = y;
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
