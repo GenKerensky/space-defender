@@ -30,9 +30,8 @@ export const games: Game[] = [
     name: "Mars Lander",
     description:
       "Master thrust and gravity to touch down on the red planet. Inspired by Atari's 1979 vector classic that demanded precision over firepower.",
-    href: "#",
+    href: "/games/mars-lander",
     thumbnail: "/assets/mars-lander-cabinet.png",
-    comingSoon: true,
   },
   {
     id: "maze-runner",

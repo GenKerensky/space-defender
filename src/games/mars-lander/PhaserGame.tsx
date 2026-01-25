@@ -19,7 +19,7 @@ export interface IRefPhaserGame {
 }
 
 interface IProps {
-  currentActiveScene?: (scene_instance: Phaser.Scene) => void;
+  currentActiveScene?: (scene: Phaser.Scene) => void;
 }
 
 export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
@@ -100,8 +100,7 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
           game.current = undefined;
         }
       };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [ref]);
 
     useEffect(() => {
       const handleSceneReady = (scene_instance: Phaser.Scene) => {
@@ -117,23 +116,12 @@ export const PhaserGame = forwardRef<IRefPhaserGame, IProps>(
       };
 
       EventBus.on("current-scene-ready", handleSceneReady);
-      return () => {
-        EventBus.off("current-scene-ready", handleSceneReady);
-      };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentActiveScene]);
 
-    return (
-      <div
-        id="phaser-game"
-        className={orbitron.className}
-        tabIndex={0}
-        style={{ outline: "none" }}
-        onMouseDown={(e) => {
-          // Ensure canvas receives focus when clicked
-          e.currentTarget.focus();
-        }}
-      />
-    );
+      return () => {
+        EventBus.removeListener("current-scene-ready", handleSceneReady);
+      };
+    }, [currentActiveScene, ref]);
+
+    return <div id="phaser-game" />;
   },
 );

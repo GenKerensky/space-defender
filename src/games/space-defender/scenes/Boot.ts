@@ -1,6 +1,6 @@
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
-import { VectorMode } from "../utils/settings";
+import { VectorMode } from "@/games/_shared/shaders/VectorShader";
 
 export class Boot extends Scene {
   constructor() {

@@ -2,18 +2,18 @@
 
 import dynamic from "next/dynamic";
 import { useRef } from "react";
+import type { IRefPhaserGame } from "@/games/mars-lander/PhaserGame";
 import { GameView } from "@/components/game-view";
-import type { IRefPhaserGame } from "@/games/space-defender/PhaserGame";
 
 const PhaserGame = dynamic(
   () =>
-    import("@/games/space-defender/PhaserGame").then((mod) => ({
+    import("@/games/mars-lander/PhaserGame").then((mod) => ({
       default: mod.PhaserGame,
     })),
   { ssr: false },
 );
 
-export default function SpaceDefenderPage() {
+export default function MarsLanderPage() {
   const phaserRef = useRef<IRefPhaserGame>({
     game: undefined,
     scene: undefined,
