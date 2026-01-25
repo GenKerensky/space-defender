@@ -6,6 +6,7 @@ Neon Cabinet is a late-night arcade: moody purple walls, neon tubes, and glowing
 
 ## Visual Tone
 
+- Skeuomorphic UI
 - Flashy, high-contrast neon on deep purple-black backgrounds.
 - Subtle haze, glow, and soft drop shadows.
 - Smooth motion and slow ambient animation, never harsh or jarring.
@@ -17,6 +18,13 @@ Neon Cabinet is a late-night arcade: moody purple walls, neon tubes, and glowing
 - `--nc-bg-primary: #12081F` main background
 - `--nc-bg-secondary: #1A0F2E` panels, cards, modals
 - `--nc-bg-tertiary: #24123D` elevated surfaces, hover fills
+
+### UI Element Backgrounds (Dark Gray-Blue)
+
+- `--nc-ui-bg-base: #1A1D2E` base dark gray-blue for buttons and UI elements
+- `--nc-ui-bg-light: #252840` lighter variant for hover states
+- `--nc-ui-bg-dark: #141620` darker variant for pressed/active states
+- `--nc-ui-bg-highlight: #2D3148` highlight color for reflective surfaces
 
 ### Primary Neon Green
 
@@ -106,6 +114,64 @@ Neon Cabinet is a late-night arcade: moody purple walls, neon tubes, and glowing
 - Primary: neon green background with dark text, glow on hover.
 - Secondary: purple outline with neon text.
 - Pressed state: darker neon with reduced glow.
+
+#### Reflective Material Gradients
+
+For hard, reflective material effects on buttons and UI elements, use these CSS gradients:
+
+**Standard Reflective Surface:**
+
+```css
+background: linear-gradient(
+  135deg,
+  var(--nc-ui-bg-highlight) 0%,
+  var(--nc-ui-bg-base) 50%,
+  var(--nc-ui-bg-dark) 100%
+);
+```
+
+**Subtle Highlight (Top Reflection):**
+
+```css
+background: linear-gradient(
+  180deg,
+  var(--nc-ui-bg-light) 0%,
+  var(--nc-ui-bg-base) 40%,
+  var(--nc-ui-bg-dark) 100%
+);
+```
+
+**Metallic Reflective (Stronger Contrast):**
+
+```css
+background: linear-gradient(
+  135deg,
+  #2f3449 0%,
+  var(--nc-ui-bg-base) 30%,
+  var(--nc-ui-bg-dark) 70%,
+  #0f1118 100%
+);
+box-shadow:
+  inset 0 1px 2px rgba(255, 255, 255, 0.1),
+  inset 0 -1px 2px rgba(0, 0, 0, 0.3),
+  0 2px 8px rgba(0, 0, 0, 0.4);
+```
+
+**Hover State (Enhanced Reflection):**
+
+```css
+background: linear-gradient(
+  135deg,
+  var(--nc-ui-bg-highlight) 0%,
+  var(--nc-ui-bg-light) 25%,
+  var(--nc-ui-bg-base) 50%,
+  var(--nc-ui-bg-dark) 100%
+);
+box-shadow:
+  inset 0 1px 3px rgba(255, 255, 255, 0.15),
+  inset 0 -1px 3px rgba(0, 0, 0, 0.4),
+  0 4px 12px rgba(0, 0, 0, 0.5);
+```
 
 ### Game Cards
 

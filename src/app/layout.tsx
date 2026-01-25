@@ -1,6 +1,26 @@
 import type { Metadata } from "next";
+import { Press_Start_2P, Orbitron, Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navbar";
+
+const pixelFont = Press_Start_2P({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-pixel",
+  display: "swap",
+});
+
+const displayFont = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const sansFont = Inter({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Neon Cabinet",
@@ -15,10 +35,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen antialiased">
+    <html
+      lang="en"
+      className={`dark ${pixelFont.variable} ${displayFont.variable} ${sansFont.variable}`}
+    >
+      <body className="arcade-bg min-h-screen antialiased">
         <Navbar />
-        <main className="min-h-[calc(100vh-3.5rem)]">{children}</main>
+        <main className="relative min-h-[calc(100vh-4rem)]">{children}</main>
       </body>
     </html>
   );
