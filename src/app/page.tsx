@@ -117,39 +117,14 @@ export default function Home() {
               className="relative flex justify-center lg:justify-end"
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{
-                type: "spring",
-                stiffness: 80,
-                damping: 20,
-                delay: 0.3,
-              }}
+              transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
             >
               {/* Glow effect behind cabinet */}
-              <motion.div
-                className="absolute inset-0 -z-10 translate-y-4"
-                animate={{
-                  scale: [1, 1.05, 1],
-                  opacity: [0.5, 0.7, 0.5],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
+              <div className="absolute inset-0 -z-10 translate-y-4">
                 <div className="h-full w-full rounded-3xl bg-nc-neon-purple/30 blur-[60px]" />
-              </motion.div>
+              </div>
 
-              {/* Floating cabinet image */}
-              <motion.div
-                className="relative"
-                animate={{ y: [0, -12, 0] }}
-                transition={{
-                  duration: 6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
+              <div className="relative">
                 <div className="hero-glow relative aspect-[3/4] w-64 sm:w-80 lg:w-96">
                   <Image
                     src="/assets/neon-cabinet-logo-big.png"
@@ -163,7 +138,7 @@ export default function Home() {
 
                 {/* Reflection effect */}
                 <div className="absolute -bottom-8 left-1/2 h-16 w-3/4 -translate-x-1/2 bg-gradient-to-b from-nc-neon-purple/20 to-transparent blur-xl" />
-              </motion.div>
+              </div>
             </motion.div>
           </div>
         </div>
