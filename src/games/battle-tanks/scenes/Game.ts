@@ -152,7 +152,20 @@ export class Game extends Scene {
     this.particles.render(width, height);
 
     const pos = this.tank.getPosition();
-    this.hud.update(this.tank.getVelocity(), pos.x, pos.z);
+    const enemyPositions = this.testObstacles.map((o) => o.position);
+
+    this.hud.update(
+      this.tank.getVelocity(),
+      pos.x,
+      pos.z,
+      this.tank.getScore(),
+      this.tank.getDamageState(),
+      this.tank.getAmmo(),
+      this.tank.getReloadState(),
+      enemyPositions,
+      pos,
+      this.tank.getRotation(),
+    );
 
     this.starfield.update(this.tank.getRotation());
   }

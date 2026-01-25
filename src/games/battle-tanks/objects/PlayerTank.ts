@@ -1,6 +1,12 @@
 import Phaser from "phaser";
 import { Vector3D } from "../engine/Vector3D";
 import { Camera3D } from "../engine/Camera3D";
+import {
+  TankDamageState,
+  TankSection,
+  DamageLevel,
+  createInitialDamageState,
+} from "./TankHealth";
 
 /**
  * Player tank with first-person camera and WASD controls
@@ -23,6 +29,20 @@ export class PlayerTank {
   private readonly rotationSpeed = 1.5;
   private readonly eyeHeight = 50;
 
+  // Damage state
+  private damageState: TankDamageState;
+
+  // Ammo and reload state
+  private readonly maxAmmo = 10;
+  private currentAmmo: number;
+  private isReloading = false;
+  private reloadProgress = 0;
+  private readonly reloadTime = 2000; // ms
+  private reloadStartTime = 0;
+
+  // Score
+  private score = 0;
+
   // Input keys
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: {
@@ -40,6 +60,9 @@ export class PlayerTank {
     this.velocity = 0;
     this.targetVelocity = 0;
     this.rotationVelocity = 0;
+
+    this.damageState = createInitialDamageState();
+    this.currentAmmo = this.maxAmmo;
 
     this.setupInput();
     this.updateCamera();
@@ -63,6 +86,7 @@ export class PlayerTank {
     this.handleInput();
     this.applyMovement(dt);
     this.updateCamera();
+    this.updateReload();
   }
 
   private handleInput(): void {
@@ -157,5 +181,75 @@ export class PlayerTank {
   setRotation(rotation: number): void {
     this.rotation = rotation;
     this.updateCamera();
+  }
+
+  // Damage methods
+  takeDamage(section: TankSection): boolean {
+    const current = this.damageState[section];
+    if (current < DamageLevel.DESTROYED) {
+      this.damageState[section] = current + 1;
+    }
+    return this.damageState[section] >= DamageLevel.DESTROYED;
+  }
+
+  getDamageState(): TankDamageState {
+    return { ...this.damageState };
+  }
+
+  isDead(): boolean {
+    return (
+      this.damageState.front >= DamageLevel.DESTROYED ||
+      this.damageState.rear >= DamageLevel.DESTROYED ||
+      this.damageState.left >= DamageLevel.DESTROYED ||
+      this.damageState.right >= DamageLevel.DESTROYED
+    );
+  }
+
+  // Ammo methods
+  getAmmo(): { current: number; max: number } {
+    return { current: this.currentAmmo, max: this.maxAmmo };
+  }
+
+  useAmmo(): boolean {
+    if (this.currentAmmo > 0 && !this.isReloading) {
+      this.currentAmmo--;
+      return true;
+    }
+    return false;
+  }
+
+  // Reload methods
+  startReload(): void {
+    if (!this.isReloading && this.currentAmmo < this.maxAmmo) {
+      this.isReloading = true;
+      this.reloadProgress = 0;
+      this.reloadStartTime = this.scene.time.now;
+    }
+  }
+
+  updateReload(): void {
+    if (this.isReloading) {
+      const elapsed = this.scene.time.now - this.reloadStartTime;
+      this.reloadProgress = Math.min(1, elapsed / this.reloadTime);
+
+      if (this.reloadProgress >= 1) {
+        this.isReloading = false;
+        this.currentAmmo = this.maxAmmo;
+        this.reloadProgress = 0;
+      }
+    }
+  }
+
+  getReloadState(): { isReloading: boolean; progress: number } {
+    return { isReloading: this.isReloading, progress: this.reloadProgress };
+  }
+
+  // Score methods
+  getScore(): number {
+    return this.score;
+  }
+
+  addScore(points: number): void {
+    this.score += points;
   }
 }
