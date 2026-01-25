@@ -15,35 +15,35 @@ export const COLORS = {
 };
 
 /**
- * Enemy tank model (Battlezone style)
+ * Enemy tank model (Battlezone style) - scaled to match player size
  */
 export const ENEMY_TANK: WireframeModel = {
   vertices: [
     // Body base
-    new Vector3D(-15, 0, -20),
-    new Vector3D(15, 0, -20),
-    new Vector3D(15, 0, 20),
-    new Vector3D(-15, 0, 20),
+    new Vector3D(-40, 0, -50),
+    new Vector3D(40, 0, -50),
+    new Vector3D(40, 0, 50),
+    new Vector3D(-40, 0, 50),
     // Body top
-    new Vector3D(-15, 12, -20),
-    new Vector3D(15, 12, -20),
-    new Vector3D(15, 12, 20),
-    new Vector3D(-15, 12, 20),
+    new Vector3D(-40, 30, -50),
+    new Vector3D(40, 30, -50),
+    new Vector3D(40, 30, 50),
+    new Vector3D(-40, 30, 50),
     // Turret base
-    new Vector3D(-8, 12, -8),
-    new Vector3D(8, 12, -8),
-    new Vector3D(8, 12, 8),
-    new Vector3D(-8, 12, 8),
+    new Vector3D(-20, 30, -20),
+    new Vector3D(20, 30, -20),
+    new Vector3D(20, 30, 20),
+    new Vector3D(-20, 30, 20),
     // Turret top
-    new Vector3D(-8, 20, -8),
-    new Vector3D(8, 20, -8),
-    new Vector3D(8, 20, 8),
-    new Vector3D(-8, 20, 8),
+    new Vector3D(-20, 55, -20),
+    new Vector3D(20, 55, -20),
+    new Vector3D(20, 55, 20),
+    new Vector3D(-20, 55, 20),
     // Cannon
-    new Vector3D(-2, 16, 8),
-    new Vector3D(2, 16, 8),
-    new Vector3D(2, 16, 35),
-    new Vector3D(-2, 16, 35),
+    new Vector3D(-5, 45, 20),
+    new Vector3D(5, 45, 20),
+    new Vector3D(5, 45, 80),
+    new Vector3D(-5, 45, 80),
   ],
   edges: createEdges([
     [0, 1],

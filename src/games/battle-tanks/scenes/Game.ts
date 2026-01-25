@@ -13,8 +13,9 @@ import {
   VectorParticleSystem,
   PARTICLE_PRESETS,
 } from "../objects/VectorParticles";
-import { Vector3D } from "../engine/Vector3D";
-import { PYRAMID, CUBE } from "../models/models";
+import { Projectile } from "../objects/Projectile";
+import { EnemyManager } from "../objects/EnemyManager";
+import { WaveSystem } from "../objects/WaveSystem";
 
 export class Game extends Scene {
   private camera3d!: Camera3D;
@@ -31,11 +32,10 @@ export class Game extends Scene {
 
   private hud!: HUD;
 
-  private testObstacles: {
-    position: Vector3D;
-    rotation: number;
-    model: typeof PYRAMID;
-  }[] = [];
+  // Combat systems
+  private projectiles: Projectile[] = [];
+  private enemyManager!: EnemyManager;
+  private waveSystem!: WaveSystem;
 
   constructor() {
     super("Game");
@@ -67,7 +67,12 @@ export class Game extends Scene {
     this.hud = new HUD(this);
     this.hud.draw();
 
-    this.createTestObstacles();
+    // Initialize combat systems
+    this.enemyManager = new EnemyManager();
+    this.waveSystem = new WaveSystem(this.enemyManager);
+
+    // Start first wave
+    this.waveSystem.startWave(this.tank.getPosition());
 
     this.input.keyboard
       ?.addKey(Phaser.Input.Keyboard.KeyCodes.ESC)
@@ -78,59 +83,91 @@ export class Game extends Scene {
         }
       });
 
+    // Fire cannon on SPACE
     this.input.keyboard
       ?.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE)
       .on("down", () => {
-        this.triggerTestExplosion();
+        this.fireProjectile();
       });
 
     EventBus.emit("current-scene-ready", this);
   }
 
-  private createTestObstacles(): void {
-    this.testObstacles = [
-      { position: new Vector3D(500, 0, 500), rotation: 0, model: PYRAMID },
-      {
-        position: new Vector3D(-500, 0, 500),
-        rotation: Math.PI / 4,
-        model: PYRAMID,
-      },
-      { position: new Vector3D(0, 0, 800), rotation: 0, model: CUBE },
-      {
-        position: new Vector3D(700, 0, -300),
-        rotation: Math.PI / 6,
-        model: PYRAMID,
-      },
-      { position: new Vector3D(-600, 0, -600), rotation: 0, model: CUBE },
-      {
-        position: new Vector3D(300, 0, -700),
-        rotation: Math.PI / 3,
-        model: PYRAMID,
-      },
-      { position: new Vector3D(-800, 0, 200), rotation: 0, model: CUBE },
-      { position: new Vector3D(1000, 0, 1000), rotation: 0, model: PYRAMID },
-      {
-        position: new Vector3D(-1000, 0, 1000),
-        rotation: Math.PI / 2,
-        model: CUBE,
-      },
-    ];
+  private fireProjectile(): void {
+    const fireData = this.tank.fire();
+    if (fireData) {
+      const projectile = new Projectile(fireData.position, fireData.direction);
+      this.projectiles.push(projectile);
+    }
   }
 
-  private triggerTestExplosion(): void {
-    const forward = this.camera3d.getForward();
-    const explosionPos = this.tank.getPosition().add(forward.scale(200));
-    explosionPos.y = 30;
+  private checkCollisions(): void {
+    const enemies = this.enemyManager.getEnemies();
 
-    this.particles.emitRing(explosionPos, 20, PARTICLE_PRESETS.explosion);
-    this.particles.emit(explosionPos, 10, PARTICLE_PRESETS.debris);
-    this.screenShake.explosion();
+    for (const projectile of this.projectiles) {
+      if (!projectile.isAlive()) continue;
+
+      for (const enemy of enemies) {
+        if (!enemy.isAlive()) continue;
+
+        const dist = projectile.distanceTo(enemy.getCollisionCenter());
+        if (dist < enemy.collisionRadius + projectile.radius) {
+          // Hit!
+          enemy.takeDamage();
+          projectile.destroy();
+
+          // Spawn hit particles
+          this.particles.emit(
+            enemy.position.clone(),
+            5,
+            PARTICLE_PRESETS.sparks,
+          );
+
+          if (enemy.isDead()) {
+            // Enemy destroyed
+            this.tank.addScore(enemy.points);
+            this.particles.emitRing(
+              enemy.position.clone(),
+              15,
+              PARTICLE_PRESETS.explosion,
+            );
+            this.particles.emit(
+              enemy.position.clone(),
+              8,
+              PARTICLE_PRESETS.debris,
+            );
+            this.screenShake.fire();
+          }
+          break; // Projectile can only hit one enemy
+        }
+      }
+    }
   }
 
   update(_time: number, delta: number): void {
     const { width, height } = this.cameras.main;
 
     this.tank.update(delta);
+
+    // Update projectiles
+    for (const projectile of this.projectiles) {
+      projectile.update(delta);
+    }
+    // Remove dead projectiles
+    this.projectiles = this.projectiles.filter((p) => p.isAlive());
+
+    // Update enemies
+    this.enemyManager.update(delta);
+
+    // Check collisions
+    this.checkCollisions();
+
+    // Update wave system
+    this.waveSystem.update();
+    if (this.waveSystem.isWaveComplete()) {
+      // Start next wave
+      this.waveSystem.startWave(this.tank.getPosition());
+    }
 
     this.particles.update(delta);
 
@@ -139,20 +176,18 @@ export class Game extends Scene {
     this.groundGrid.render(width, height);
     this.mountains.render(this.camera3d, width, height);
 
-    for (const obstacle of this.testObstacles) {
-      this.wireframeRenderer.render(
-        obstacle.model,
-        obstacle.position,
-        obstacle.rotation,
-        width,
-        height,
-      );
+    // Render enemies
+    this.enemyManager.render(this.wireframeRenderer, width, height);
+
+    // Render projectiles
+    for (const projectile of this.projectiles) {
+      projectile.render(this.wireframeRenderer, width, height);
     }
 
     this.particles.render(width, height);
 
     const pos = this.tank.getPosition();
-    const enemyPositions = this.testObstacles.map((o) => o.position);
+    const enemyPositions = this.enemyManager.getEnemyPositions();
 
     this.hud.update(
       this.tank.getVelocity(),
@@ -165,6 +200,7 @@ export class Game extends Scene {
       enemyPositions,
       pos,
       this.tank.getRotation(),
+      this.waveSystem.getWaveNumber(),
     );
 
     this.starfield.update(this.tank.getRotation());

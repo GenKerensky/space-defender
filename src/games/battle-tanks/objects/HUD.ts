@@ -9,8 +9,9 @@ export class HUD {
   private scene: Phaser.Scene;
   private graphics: Phaser.GameObjects.Graphics;
 
-  // Top left - Score
+  // Top left - Score and Wave
   private scoreText!: Phaser.GameObjects.Text;
+  private waveText!: Phaser.GameObjects.Text;
 
   // Top right - Speed and position
   private speedText!: Phaser.GameObjects.Text;
@@ -58,6 +59,20 @@ export class HUD {
     });
     this.scoreText.setScrollFactor(0);
     this.scoreText.setDepth(100);
+
+    // Top left - Wave (below score)
+    this.waveText = this.scene.add.text(
+      this.margin,
+      this.margin + 32,
+      "WAVE 1",
+      {
+        fontFamily: this.fontFamily,
+        fontSize: "20px",
+        color: "#00ff00",
+      },
+    );
+    this.waveText.setScrollFactor(0);
+    this.waveText.setDepth(100);
 
     // Top right - Speed
     this.speedText = this.scene.add.text(
@@ -263,9 +278,13 @@ export class HUD {
     enemies: Vector3D[],
     playerPos: Vector3D,
     playerRotation: number,
+    waveNumber = 1,
   ): void {
     // Update score
     this.scoreText.setText(`SCORE: ${score}`);
+
+    // Update wave
+    this.waveText.setText(`WAVE ${waveNumber}`);
 
     // Update speed
     const displaySpeed = Math.abs(Math.round(speed));
@@ -494,6 +513,7 @@ export class HUD {
   destroy(): void {
     this.graphics.destroy();
     this.scoreText.destroy();
+    this.waveText.destroy();
     this.speedText.destroy();
     this.positionText.destroy();
     this.armorGraphics.destroy();

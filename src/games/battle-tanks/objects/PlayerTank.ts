@@ -252,4 +252,35 @@ export class PlayerTank {
   addScore(points: number): void {
     this.score += points;
   }
+
+  // Fire method - returns projectile spawn info or null if can't fire
+  fire(): { position: Vector3D; direction: Vector3D } | null {
+    if (!this.useAmmo()) {
+      return null;
+    }
+
+    // Spawn projectile at cannon position (slightly in front and above tank)
+    const spawnOffset = 30; // Distance in front of tank
+    const spawnHeight = this.eyeHeight; // Same as camera height
+
+    const spawnPos = new Vector3D(
+      this.position.x + Math.sin(this.rotation) * spawnOffset,
+      spawnHeight,
+      this.position.z + Math.cos(this.rotation) * spawnOffset,
+    );
+
+    // Direction is forward based on rotation
+    const direction = new Vector3D(
+      Math.sin(this.rotation),
+      0,
+      Math.cos(this.rotation),
+    );
+
+    // Auto-reload when empty
+    if (this.currentAmmo === 0) {
+      this.startReload();
+    }
+
+    return { position: spawnPos, direction };
+  }
 }
