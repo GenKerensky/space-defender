@@ -860,7 +860,7 @@ export class Game extends Scene {
     // Get current weapon color
     const weapon = this.weaponManager.getCurrentWeapon();
     let weaponColor = 0xffffff; // Default white
-    if (weapon.name === "BLASTER") {
+    if (weapon.name === "AUTOCANNON") {
       weaponColor = 0xffd700; // Gold
     } else if (weapon.name === "LASER") {
       weaponColor = 0xff0000; // Red

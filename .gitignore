@@ -18,6 +18,9 @@ lerna-debug.log*
 *.sln
 *.sw?
 
+# Typescript
+*.tsbuildinfo
+
 # Next.js
 .next
 out

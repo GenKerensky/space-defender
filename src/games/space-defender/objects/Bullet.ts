@@ -46,15 +46,13 @@ export class Bullet extends Phaser.Physics.Arcade.Sprite {
 
   private updateBloomGlow(): void {
     this.bloomGlow.clear();
-    // Outer glow (large, low opacity) - gold/yellow
-    this.bloomGlow.fillStyle(0xffd700, 0.15);
-    this.bloomGlow.fillCircle(0, 0, 12);
-    // Middle glow (medium, medium opacity)
-    this.bloomGlow.fillStyle(0xffaa00, 0.3);
-    this.bloomGlow.fillCircle(0, 0, 8);
-    // Inner glow (small, high opacity)
-    this.bloomGlow.fillStyle(0xffff00, 0.5);
-    this.bloomGlow.fillCircle(0, 0, 4);
+    // Subtle glow for autocannon tracer - elongated ellipses
+    this.bloomGlow.fillStyle(0xffd700, 0.1);
+    this.bloomGlow.fillEllipse(0, 0, 10, 4);
+    this.bloomGlow.fillStyle(0xffaa00, 0.2);
+    this.bloomGlow.fillEllipse(0, 0, 6, 3);
+    this.bloomGlow.fillStyle(0xffff00, 0.3);
+    this.bloomGlow.fillEllipse(0, 0, 4, 2);
   }
 
   update(): void {

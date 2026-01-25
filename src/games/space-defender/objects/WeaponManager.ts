@@ -1,6 +1,6 @@
 import Phaser, { Scene } from "phaser";
 import { Weapon } from "./Weapon";
-import { BlasterWeapon } from "./BlasterWeapon";
+import { AutocannonWeapon } from "./AutocannonWeapon";
 import { RayGunWeapon } from "./RayGunWeapon";
 import { LaserWeapon } from "./LaserWeapon";
 import { MissileWeapon } from "./MissileWeapon";
@@ -31,8 +31,8 @@ export class WeaponManager {
     });
 
     // Initialize weapons
-    const blaster = new BlasterWeapon();
-    blaster.setBulletGroup(bulletGroup);
+    const autocannon = new AutocannonWeapon();
+    autocannon.setBulletGroup(bulletGroup);
 
     const laser = new LaserWeapon();
     laser.setAsteroidGroup(asteroidGroup);
@@ -44,7 +44,7 @@ export class WeaponManager {
     rayGun.setBulletGroup(bulletGroup);
     rayGun.setAsteroidGroup(asteroidGroup);
 
-    this.weapons = [blaster, laser, this.missileWeapon, rayGun];
+    this.weapons = [autocannon, laser, this.missileWeapon, rayGun];
   }
 
   setOnMissileAutoDetonate(callback: (missile: Missile) => void): void {

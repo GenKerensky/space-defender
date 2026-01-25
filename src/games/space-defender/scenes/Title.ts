@@ -135,38 +135,39 @@ export class Title extends Phaser.Scene {
       });
     }
 
-    this.shipPreview = this.add.image(width / 2, height * 0.58, "ship");
+    this.shipPreview = this.add.image(width / 2, height * 0.46, "ship");
     this.shipPreview.setScale(2);
     this.shipPreview.setDepth(10);
     this.shipPreview.setRotation(0);
 
-    // Animate ship moving up and down the screen
+    // Animate ship moving up and down the screen (smaller range, higher position)
     this.tweens.add({
       targets: this.shipPreview,
-      y: { from: height * 0.5, to: height * 0.66 },
+      y: { from: height * 0.42, to: height * 0.52 },
       duration: 3000,
       yoyo: true,
       repeat: -1,
       ease: "Sine.easeInOut",
     });
 
-    // Ship engine particles
+    // Ship engine particles - offset to engine location (ship is 80px tall, engine at ~y=76)
+    // With scale 2, engine is 72px below center (36 * 2)
     const engineParticles = this.add.particles(0, 0, "flame", {
       color: [0xffffff, 0xaaddff, 0x33aaff, 0x0066ff, 0x003388],
       colorEase: "quad.out",
       speed: { min: 80, max: 140 },
       scale: { start: 1.2, end: 0, ease: "sine.out" },
-      lifespan: 500,
+      lifespan: 400,
       blendMode: "ADD",
       frequency: 12,
       quantity: 2,
       angle: { min: 82, max: 98 },
       follow: this.shipPreview,
-      followOffset: { x: 0, y: 20 },
+      followOffset: { x: 0, y: 72 },
     });
     engineParticles.setDepth(8);
 
-    const controlsY = height * 0.7;
+    const controlsY = height * 0.72;
     const controlsText = [
       "WASD - MOVE",
       "MOUSE - AIM",

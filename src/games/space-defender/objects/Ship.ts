@@ -13,6 +13,11 @@ export class Ship extends Phaser.Physics.Arcade.Sprite {
   private isInvulnerable: boolean = false;
   private invulnerabilityTimer?: Phaser.Time.TimerEvent;
   private aimAngle: number = 0;
+  private targetAimAngle: number = 0;
+  private rotationVelocity: number = 0;
+  private rotationAccel: number = 15; // Angular acceleration (radians/sec²)
+  private maxRotationSpeed: number = 8; // Max rotation speed (radians/sec)
+  private rotationDamping: number = 0.92; // Friction on rotation
   private exhaustAngleDeg: number = 0;
   private thrustEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
@@ -60,14 +65,38 @@ export class Ship extends Phaser.Physics.Arcade.Sprite {
   update(): void {
     if (!this.active) return;
 
-    // Mouse aiming - get angle toward mouse
+    // Mouse aiming - get target angle toward mouse
     const pointer = this.scene.input.activePointer;
-    this.aimAngle = Phaser.Math.Angle.Between(
+    this.targetAimAngle = Phaser.Math.Angle.Between(
       this.x,
       this.y,
       pointer.worldX,
       pointer.worldY,
     );
+
+    // Calculate shortest angle difference
+    const angleDiff = Phaser.Math.Angle.Wrap(
+      this.targetAimAngle - this.aimAngle,
+    );
+
+    // Apply rotational acceleration toward target
+    const dt = this.scene.game.loop.delta / 1000; // Delta time in seconds
+    this.rotationVelocity += angleDiff * this.rotationAccel * dt;
+
+    // Clamp rotation speed
+    this.rotationVelocity = Phaser.Math.Clamp(
+      this.rotationVelocity,
+      -this.maxRotationSpeed,
+      this.maxRotationSpeed,
+    );
+
+    // Apply rotation velocity
+    this.aimAngle += this.rotationVelocity * dt;
+    this.aimAngle = Phaser.Math.Angle.Wrap(this.aimAngle);
+
+    // Apply damping to rotation velocity
+    this.rotationVelocity *= this.rotationDamping;
+
     this.setRotation(this.aimAngle + Math.PI / 2); // Offset since ship graphic points up
 
     // Movement relative to ship facing direction
@@ -100,7 +129,17 @@ export class Ship extends Phaser.Physics.Arcade.Sprite {
       // Rocket burn effect - emit in opposite direction of thrust
       const thrustAngle = Math.atan2(accelY, accelX);
       const exhaustAngle = thrustAngle + Math.PI; // Opposite direction
-      const exhaustDistance = 12; // Distance from ship center
+
+      // Different exhaust distances based on thrust direction relative to ship facing
+      // Forward/back thrust uses main engine (far from center)
+      // Strafe thrust uses side thrusters (closer to center)
+      const thrustRelativeToFacing = Math.abs(
+        Phaser.Math.Angle.Wrap(thrustAngle - this.aimAngle),
+      );
+      const isMainEngine =
+        thrustRelativeToFacing < Math.PI / 4 ||
+        thrustRelativeToFacing > (Math.PI * 3) / 4;
+      const exhaustDistance = isMainEngine ? 38 : 18;
 
       this.thrustEmitter.setPosition(
         this.x + Math.cos(exhaustAngle) * exhaustDistance,
@@ -151,6 +190,7 @@ export class Ship extends Phaser.Physics.Arcade.Sprite {
     this.setPosition(x, y);
     this.setVelocity(0, 0);
     this.setAcceleration(0, 0);
+    this.rotationVelocity = 0;
     this.setActive(true);
     this.setVisible(true);
     this.thrustEmitter.emitting = false;

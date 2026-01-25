@@ -8,19 +8,182 @@ export class Boot extends Scene {
   }
 
   preload(): void {
-    const shipGraphics = this.make.graphics({ x: 0, y: 0 });
-    shipGraphics.fillStyle(0x4a9eff); // Blue
-    shipGraphics.lineStyle(1, 0x7bb3ff, 1); // Lighter blue
-    shipGraphics.beginPath();
-    shipGraphics.moveTo(15, 0);
-    shipGraphics.lineTo(30, 30);
-    shipGraphics.lineTo(15, 24);
-    shipGraphics.lineTo(0, 30);
-    shipGraphics.closePath();
-    shipGraphics.fillPath();
-    shipGraphics.strokePath();
-    shipGraphics.generateTexture("ship", 30, 30);
-    shipGraphics.destroy();
+    // Razorback-style racing yacht - WIREFRAME vector drawing
+    // Sleek triangular hull, pointed nose, large engine bell
+    // Ship oriented pointing UP (nose at top)
+    const g = this.make.graphics({ x: 0, y: 0 });
+    const w = 50;
+    const h = 80;
+    const cx = w / 2; // Center X = 25
+
+    // Colors
+    const hullColor = 0xffffff; // White hull lines
+    const hullDim = 0xaaaaaa; // Dimmer structural lines
+    const cyanAccent = 0x00ffff; // Cyan accents
+    const cyanBright = 0x66ffff; // Bright cyan
+
+    // ===== MAIN HULL FILL (black so stars don't show through) =====
+    g.fillStyle(0x000000, 1);
+    g.beginPath();
+    // Nose (top point)
+    g.moveTo(cx, 2);
+    // Right side - sleek angled hull
+    g.lineTo(cx + 4, 12);
+    g.lineTo(cx + 8, 28);
+    g.lineTo(cx + 12, 45);
+    // Right side flare near engine
+    g.lineTo(cx + 16, 55);
+    g.lineTo(cx + 18, 62);
+    // Right landing strut attachment
+    g.lineTo(cx + 14, 65);
+    // Engine bay right edge
+    g.lineTo(cx + 10, 68);
+    // Engine bell bottom right
+    g.lineTo(cx + 8, 75);
+    // Engine nozzle
+    g.lineTo(cx + 6, 78);
+    g.lineTo(cx - 6, 78);
+    g.lineTo(cx - 8, 75);
+    // Engine bay left edge
+    g.lineTo(cx - 10, 68);
+    // Left landing strut attachment
+    g.lineTo(cx - 14, 65);
+    // Left side flare near engine
+    g.lineTo(cx - 18, 62);
+    g.lineTo(cx - 16, 55);
+    // Left side - sleek angled hull
+    g.lineTo(cx - 12, 45);
+    g.lineTo(cx - 8, 28);
+    g.lineTo(cx - 4, 12);
+    g.closePath();
+    g.fillPath();
+
+    // ===== MAIN HULL OUTLINE =====
+    // Sleek triangular shape with pointed nose
+    g.lineStyle(2, hullColor, 1);
+    g.beginPath();
+    // Nose (top point)
+    g.moveTo(cx, 2);
+    // Right side - sleek angled hull
+    g.lineTo(cx + 4, 12);
+    g.lineTo(cx + 8, 28);
+    g.lineTo(cx + 12, 45);
+    // Right side flare near engine
+    g.lineTo(cx + 16, 55);
+    g.lineTo(cx + 18, 62);
+    // Right landing strut attachment
+    g.lineTo(cx + 14, 65);
+    // Engine bay right edge
+    g.lineTo(cx + 10, 68);
+    // Engine bell bottom right
+    g.lineTo(cx + 8, 75);
+    // Engine nozzle
+    g.lineTo(cx + 6, 78);
+    g.lineTo(cx - 6, 78);
+    g.lineTo(cx - 8, 75);
+    // Engine bay left edge
+    g.lineTo(cx - 10, 68);
+    // Left landing strut attachment
+    g.lineTo(cx - 14, 65);
+    // Left side flare near engine
+    g.lineTo(cx - 18, 62);
+    g.lineTo(cx - 16, 55);
+    // Left side - sleek angled hull
+    g.lineTo(cx - 12, 45);
+    g.lineTo(cx - 8, 28);
+    g.lineTo(cx - 4, 12);
+    g.closePath();
+    g.strokePath();
+
+    // ===== COCKPIT / NOSE SECTION =====
+    g.lineStyle(1, hullDim, 0.9);
+    // Cockpit window outline
+    g.beginPath();
+    g.moveTo(cx - 2, 8);
+    g.lineTo(cx + 2, 8);
+    g.lineTo(cx + 3, 16);
+    g.lineTo(cx - 3, 16);
+    g.closePath();
+    g.strokePath();
+
+    // ===== HULL PANEL LINES =====
+    g.lineStyle(1, hullDim, 0.7);
+    // Vertical center seam
+    g.lineBetween(cx, 18, cx, 45);
+    // Horizontal panel lines
+    g.lineBetween(cx - 6, 25, cx + 6, 25);
+    g.lineBetween(cx - 9, 38, cx + 9, 38);
+    g.lineBetween(cx - 11, 50, cx + 11, 50);
+
+    // Side panel details
+    g.lineBetween(cx + 5, 20, cx + 10, 42);
+    g.lineBetween(cx - 5, 20, cx - 10, 42);
+
+    // ===== ENGINE BAY / INTERNAL STRUCTURE =====
+    g.lineStyle(1, hullDim, 0.8);
+    // Engine bay frame
+    g.beginPath();
+    g.moveTo(cx - 6, 52);
+    g.lineTo(cx + 6, 52);
+    g.lineTo(cx + 8, 68);
+    g.lineTo(cx - 8, 68);
+    g.closePath();
+    g.strokePath();
+
+    // Internal pipes/machinery (like the Razorback's exposed internals)
+    g.lineStyle(1, hullDim, 0.6);
+    // Vertical pipes
+    g.lineBetween(cx - 3, 54, cx - 3, 66);
+    g.lineBetween(cx + 3, 54, cx + 3, 66);
+    g.lineBetween(cx, 56, cx, 68);
+    // Horizontal connectors
+    g.lineBetween(cx - 4, 58, cx + 4, 58);
+    g.lineBetween(cx - 5, 64, cx + 5, 64);
+
+    // ===== LANDING STRUTS =====
+    g.lineStyle(2, hullDim, 1);
+    // Left strut
+    g.lineBetween(cx - 14, 65, cx - 20, 76);
+    // Right strut
+    g.lineBetween(cx + 14, 65, cx + 20, 76);
+    // Foot pads
+    g.lineStyle(1, hullDim, 1);
+    g.strokeCircle(cx - 20, 76, 2);
+    g.strokeCircle(cx + 20, 76, 2);
+
+    // ===== CYAN ACCENT LINES =====
+    // Racing stripes along hull edges
+    g.lineStyle(2, cyanAccent, 1);
+    // Left stripe
+    g.lineBetween(cx - 5, 10, cx - 14, 52);
+    // Right stripe
+    g.lineBetween(cx + 5, 10, cx + 14, 52);
+
+    // Nose accent
+    g.lineStyle(1, cyanBright, 1);
+    g.lineBetween(cx - 1, 4, cx + 1, 4);
+
+    // Cockpit glow
+    g.fillStyle(cyanBright, 1);
+    g.fillRect(cx - 1, 10, 2, 4);
+
+    // Engine glow
+    g.lineStyle(1, cyanAccent, 1);
+    g.beginPath();
+    g.arc(cx, 76, 5, 0, Math.PI, false);
+    g.strokePath();
+
+    // Engine exhaust (small filled area)
+    g.fillStyle(cyanBright, 1);
+    g.fillRect(cx - 4, 76, 8, 2);
+
+    // Landing strut lights
+    g.fillStyle(cyanAccent, 1);
+    g.fillCircle(cx - 20, 76, 1);
+    g.fillCircle(cx + 20, 76, 1);
+
+    g.generateTexture("ship", w, h);
+    g.destroy();
 
     // Create multiple asteroid variants with varied desaturated blue-green phosphor shades
     // Less saturated, closer to grayscale with subtle blue-green tint
@@ -60,17 +223,19 @@ export class Boot extends Scene {
       asteroidGraphics.destroy();
     }
 
+    // Autocannon round - thin tracer-like projectile
     const bulletGraphics = this.make.graphics({ x: 0, y: 0 });
-    bulletGraphics.fillStyle(0xffd700); // Gold/yellow
-    bulletGraphics.fillEllipse(1.5, 1.5, 1.5, 1.5);
-    bulletGraphics.generateTexture("bullet", 6, 3);
+    bulletGraphics.lineStyle(1, 0xffd700, 1); // Gold/yellow outline
+    bulletGraphics.fillStyle(0xffaa00); // Orange core
+    bulletGraphics.fillRect(0, 0, 8, 2); // Thin elongated shape
+    bulletGraphics.generateTexture("bullet", 8, 2);
     bulletGraphics.destroy();
 
+    // Autocannon trail - thin streak
     const trailGraphics = this.make.graphics({ x: 0, y: 0 });
-    trailGraphics.fillStyle(0xffaa00); // Orange
-    trailGraphics.fillEllipse(3, 1.5, 4, 1.5);
-    trailGraphics.strokeEllipse(3, 1.5, 4, 1.5);
-    trailGraphics.generateTexture("bullet_trail", 6, 3);
+    trailGraphics.fillStyle(0xffaa00, 0.8); // Orange
+    trailGraphics.fillRect(0, 0, 6, 1); // Very thin trail
+    trailGraphics.generateTexture("bullet_trail", 6, 1);
     trailGraphics.destroy();
 
     const particleGraphics = this.make.graphics({ x: 0, y: 0 });
@@ -93,17 +258,19 @@ export class Boot extends Scene {
     flameGraphics.generateTexture("flame", 16, 6);
     flameGraphics.destroy();
 
-    const blasterIcon = this.make.graphics({ x: 0, y: 0 });
-    blasterIcon.fillStyle(0xffaa00); // Dark gold/yellow
-    blasterIcon.fillEllipse(15, 7.5, 25, 10);
-    blasterIcon.fillStyle(0xffcc00); // Medium gold/yellow
-    blasterIcon.fillEllipse(15, 7.5, 20, 7.5);
-    blasterIcon.fillStyle(0xffd700); // Bright gold/yellow
-    blasterIcon.fillEllipse(15, 7.5, 10, 5);
-    blasterIcon.lineStyle(1, 0xffd700, 1);
-    blasterIcon.strokeEllipse(15, 7.5, 25, 10);
-    blasterIcon.generateTexture("blaster_icon", 30, 15);
-    blasterIcon.destroy();
+    // Autocannon icon - multiple thin rounds
+    const autocannonIcon = this.make.graphics({ x: 0, y: 0 });
+    autocannonIcon.fillStyle(0xffd700); // Gold
+    // Three staggered tracer rounds
+    autocannonIcon.fillRect(2, 6, 8, 2);
+    autocannonIcon.fillRect(12, 4, 8, 2);
+    autocannonIcon.fillRect(22, 8, 8, 2);
+    autocannonIcon.lineStyle(1, 0xffaa00, 1);
+    autocannonIcon.strokeRect(2, 6, 8, 2);
+    autocannonIcon.strokeRect(12, 4, 8, 2);
+    autocannonIcon.strokeRect(22, 8, 8, 2);
+    autocannonIcon.generateTexture("autocannon_icon", 30, 15);
+    autocannonIcon.destroy();
 
     const laserIcon = this.make.graphics({ x: 0, y: 0 });
     laserIcon.fillStyle(0xff0000, 0.5); // Red outer

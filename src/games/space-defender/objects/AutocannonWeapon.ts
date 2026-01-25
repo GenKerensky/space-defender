@@ -3,11 +3,11 @@ import { Weapon } from "./Weapon";
 import { Ship } from "./Ship";
 import { Bullet } from "./Bullet";
 
-export class BlasterWeapon implements Weapon {
-  name = "BLASTER";
-  cooldown = 150;
+export class AutocannonWeapon implements Weapon {
+  name = "AUTOCANNON";
+  cooldown = 120; // Slightly faster fire rate
   unlockScore = 0;
-  textureKey = "blaster_icon";
+  textureKey = "autocannon_icon";
 
   private bullets: Phaser.Physics.Arcade.Group | null = null;
 
