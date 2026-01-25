@@ -4,13 +4,15 @@ import { getFontFamily } from "../utils/font";
 
 export class GameOver extends Scene {
   private score: number = 0;
+  private wave: number = 1;
 
   constructor() {
     super("GameOver");
   }
 
-  init(data: { score?: number }): void {
+  init(data: { score?: number; wave?: number }): void {
     this.score = data.score ?? 0;
+    this.wave = data.wave ?? 1;
   }
 
   create(): void {
@@ -31,7 +33,15 @@ export class GameOver extends Scene {
     gameOverText.setOrigin(0.5);
 
     this.add
-      .text(width / 2, height * 0.45, `FINAL SCORE: ${this.score}`, {
+      .text(width / 2, height * 0.4, `WAVE ${this.wave} REACHED`, {
+        fontFamily: font,
+        fontSize: "20px",
+        color: "#00ff00",
+      })
+      .setOrigin(0.5);
+
+    this.add
+      .text(width / 2, height * 0.48, `FINAL SCORE: ${this.score}`, {
         fontFamily: font,
         fontSize: "24px",
         color: "#ffffff",

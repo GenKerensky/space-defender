@@ -1,8 +1,36 @@
 import Phaser from "phaser";
 import { EventBus } from "../EventBus";
 import { getFontFamily } from "../utils/font";
+import { Camera3D } from "../engine/Camera3D";
+import { WireframeRenderer } from "../engine/WireframeRenderer";
+import { GroundGrid } from "../objects/GroundGrid";
+import { Mountains } from "../objects/Mountains";
+import { Starfield } from "../effects/Starfield";
+import { Atmosphere } from "../effects/Atmosphere";
+import { ENEMY_TANK } from "../models/models";
+import { TURRET_MODEL } from "../objects/Turret";
+import { Vector3D } from "../engine/Vector3D";
+import { WireframeModel } from "../engine/WireframeModel";
+
+interface PassingObject {
+  position: Vector3D;
+  rotation: number;
+  model: WireframeModel;
+}
 
 export class Title extends Phaser.Scene {
+  private camera3d!: Camera3D;
+  private wireframeRenderer!: WireframeRenderer;
+  private groundGrid!: GroundGrid;
+  private mountains!: Mountains;
+  private starfield!: Starfield;
+  private atmosphere!: Atmosphere;
+
+  private cameraZ = 0;
+  private readonly moveSpeed = 150;
+  private passingObjects: PassingObject[] = [];
+  private spawnTimer = 0;
+
   constructor() {
     super("Title");
   }
@@ -11,12 +39,30 @@ export class Title extends Phaser.Scene {
     const { width, height } = this.cameras.main;
     const font = getFontFamily(this);
 
+    this.cameras.main.setBackgroundColor(0x000000);
     this.cameras.main.setPostPipeline("VectorShader");
 
-    this.createAtmosphereBackground();
-    this.createStarField();
+    // Initialize 3D camera (stationary rotation, moving forward)
+    this.camera3d = new Camera3D(400);
+    this.camera3d.position.y = 50;
+    this.cameraZ = 0;
 
-    const titleText = this.add.text(width / 2, height * 0.2, "BATTLE TANKS", {
+    // Create visual effects (same as game)
+    this.atmosphere = new Atmosphere();
+    this.atmosphere.create(this, 0x004400);
+
+    this.starfield = new Starfield();
+    this.starfield.create(this);
+
+    this.wireframeRenderer = new WireframeRenderer(this, this.camera3d);
+    this.groundGrid = new GroundGrid(this, this.camera3d);
+    this.mountains = new Mountains(this);
+
+    // Spawn initial tanks
+    this.spawnInitialObjects();
+
+    // Title text - centered
+    const titleText = this.add.text(width / 2, height * 0.35, "BATTLE TANKS", {
       fontFamily: font,
       fontSize: "72px",
       color: "#00ff00",
@@ -24,16 +70,16 @@ export class Title extends Phaser.Scene {
       strokeThickness: 3,
     });
     titleText.setOrigin(0.5);
-    titleText.setDepth(10);
+    titleText.setDepth(100);
 
-    const titleGlow = this.add.text(width / 2, height * 0.2, "BATTLE TANKS", {
+    const titleGlow = this.add.text(width / 2, height * 0.35, "BATTLE TANKS", {
       fontFamily: font,
       fontSize: "72px",
       color: "#00ff00",
     });
     titleGlow.setOrigin(0.5);
     titleGlow.setAlpha(0.3);
-    titleGlow.setDepth(9);
+    titleGlow.setDepth(99);
 
     this.tweens.add({
       targets: titleGlow,
@@ -47,19 +93,17 @@ export class Title extends Phaser.Scene {
     });
 
     this.add
-      .text(width / 2, height * 0.3, "WIREFRAME COMBAT", {
+      .text(width / 2, height * 0.45, "WIREFRAME COMBAT", {
         fontFamily: font,
         fontSize: "24px",
         color: "#00aa00",
       })
       .setOrigin(0.5)
-      .setDepth(10);
-
-    this.drawTankPreview(width / 2, height * 0.55);
+      .setDepth(100);
 
     const startText = this.add.text(
       width / 2,
-      height * 0.8,
+      height * 0.58,
       "PRESS SPACE TO START",
       {
         fontFamily: font,
@@ -68,7 +112,7 @@ export class Title extends Phaser.Scene {
       },
     );
     startText.setOrigin(0.5);
-    startText.setDepth(10);
+    startText.setDepth(100);
 
     this.tweens.add({
       targets: startText,
@@ -79,18 +123,27 @@ export class Title extends Phaser.Scene {
     });
 
     this.add
+      .text(width / 2, height * 0.66, "SPACE - FIRE  |  R - RELOAD", {
+        fontFamily: font,
+        fontSize: "16px",
+        color: "#666666",
+      })
+      .setOrigin(0.5)
+      .setDepth(100);
+
+    this.add
       .text(
         width / 2,
-        height * 0.88,
-        "W/↑ - FORWARD  |  S/↓ - REVERSE  |  A/D or ←/→ - TURN",
+        height * 0.71,
+        "W/S or ↑/↓ - MOVE  |  A/D or ←/→ - TURN",
         {
           fontFamily: font,
-          fontSize: "18px",
-          color: "#888888",
+          fontSize: "16px",
+          color: "#666666",
         },
       )
       .setOrigin(0.5)
-      .setDepth(10);
+      .setDepth(100);
 
     this.input.keyboard?.once("keydown-SPACE", () => {
       this.scene.start("Game");
@@ -103,114 +156,74 @@ export class Title extends Phaser.Scene {
     EventBus.emit("current-scene-ready", this);
   }
 
-  private createAtmosphereBackground(): void {
-    const { width, height } = this.cameras.main;
-    const graphics = this.add.graphics();
-
-    const steps = 20;
-    for (let i = 0; i < steps; i++) {
-      const y = (height / steps) * i;
-      const h = height / steps + 1;
-
-      const progress = i / steps;
-      const r = Math.floor(progress * progress * 0);
-      const g = Math.floor(progress * progress * 30);
-      const b = Math.floor(progress * progress * 10);
-
-      const color = Phaser.Display.Color.GetColor(r, g, b);
-      graphics.fillStyle(color, 1);
-      graphics.fillRect(0, y, width, h);
+  private spawnInitialObjects(): void {
+    // Spawn a few objects ahead at start
+    for (let i = 0; i < 4; i++) {
+      this.spawnObject(400 + i * 500);
     }
-
-    graphics.setDepth(-2);
   }
 
-  private createStarField(): void {
-    const { width, height } = this.cameras.main;
-    const stars = this.add.graphics();
+  private spawnObject(zOffset = 1000): void {
+    const side = Math.random() > 0.5 ? "left" : "right";
+    const xOffset =
+      side === "left" ? -250 - Math.random() * 200 : 250 + Math.random() * 200;
 
-    for (let i = 0; i < 100; i++) {
-      const x = Phaser.Math.Between(0, width);
-      const y = Phaser.Math.Between(0, height * 0.7);
-      const brightness = Phaser.Math.Between(40, 80);
-      const color = Phaser.Display.Color.GetColor(
-        brightness,
-        brightness,
-        brightness,
-      );
-      stars.fillStyle(color, 0.6);
-      stars.fillCircle(x, y, 0.5);
-    }
+    // Randomly choose between tank and turret
+    const model = Math.random() > 0.4 ? ENEMY_TANK : TURRET_MODEL;
 
-    for (let i = 0; i < 50; i++) {
-      const x = Phaser.Math.Between(0, width);
-      const y = Phaser.Math.Between(0, height * 0.6);
-      const brightness = Phaser.Math.Between(100, 160);
-      const color = Phaser.Display.Color.GetColor(
-        brightness,
-        brightness,
-        brightness,
-      );
-      stars.fillStyle(color, 0.8);
-      stars.fillCircle(x, y, 1);
-    }
-
-    for (let i = 0; i < 20; i++) {
-      const x = Phaser.Math.Between(0, width);
-      const y = Phaser.Math.Between(0, height * 0.5);
-      const brightness = Phaser.Math.Between(180, 255);
-      const color = Phaser.Display.Color.GetColor(
-        brightness,
-        brightness,
-        brightness + 20,
-      );
-      stars.fillStyle(color, 1);
-      stars.fillCircle(x, y, Phaser.Math.FloatBetween(1, 1.5));
-    }
-
-    stars.setDepth(-1);
-  }
-
-  private drawTankPreview(cx: number, cy: number): void {
-    const g = this.add.graphics();
-    g.setDepth(5);
-
-    const scale = 2;
-    const color = 0x00ff00;
-
-    g.lineStyle(2, color, 1);
-    g.strokeRect(cx - 30 * scale, cy - 20 * scale, 60 * scale, 40 * scale);
-    g.strokeRect(cx - 15 * scale, cy - 12 * scale, 30 * scale, 24 * scale);
-
-    g.lineStyle(3, color, 1);
-    g.beginPath();
-    g.moveTo(cx, cy - 5 * scale);
-    g.lineTo(cx, cy - 40 * scale);
-    g.strokePath();
-
-    g.lineStyle(2, color, 0.7);
-    g.strokeRect(cx - 35 * scale, cy - 18 * scale, 8 * scale, 36 * scale);
-    g.strokeRect(cx + 27 * scale, cy - 18 * scale, 8 * scale, 36 * scale);
-
-    g.lineStyle(1, color, 0.5);
-    for (let i = -15; i <= 15; i += 6) {
-      g.beginPath();
-      g.moveTo(cx - 35 * scale, cy + i * scale);
-      g.lineTo(cx - 27 * scale, cy + i * scale);
-      g.strokePath();
-      g.beginPath();
-      g.moveTo(cx + 27 * scale, cy + i * scale);
-      g.lineTo(cx + 35 * scale, cy + i * scale);
-      g.strokePath();
-    }
-
-    this.tweens.add({
-      targets: g,
-      y: 15,
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: "Sine.easeInOut",
+    this.passingObjects.push({
+      position: new Vector3D(xOffset, 0, this.cameraZ + zOffset),
+      rotation: Math.random() * Math.PI * 2,
+      model,
     });
+  }
+
+  update(_time: number, delta: number): void {
+    const { width, height } = this.cameras.main;
+    const dt = delta / 1000;
+
+    // Move camera forward
+    this.cameraZ += this.moveSpeed * dt;
+    this.camera3d.position.z = this.cameraZ;
+
+    // Spawn new objects periodically
+    this.spawnTimer += delta;
+    if (this.spawnTimer > 2500 + Math.random() * 1500) {
+      this.spawnTimer = 0;
+      this.spawnObject();
+    }
+
+    // Remove objects that are behind the camera
+    this.passingObjects = this.passingObjects.filter(
+      (obj) => obj.position.z > this.cameraZ - 200,
+    );
+
+    // Update starfield (no rotation on title)
+    this.starfield.update(0);
+
+    // Render scene
+    this.wireframeRenderer.clear();
+    this.groundGrid.render(width, height);
+    this.mountains.render(this.camera3d, width, height);
+
+    // Render passing tanks and turrets (green)
+    for (const obj of this.passingObjects) {
+      this.wireframeRenderer.render(
+        obj.model,
+        obj.position,
+        obj.rotation,
+        width,
+        height,
+        0x00ff00,
+      );
+    }
+  }
+
+  shutdown(): void {
+    this.starfield?.destroy();
+    this.atmosphere?.destroy();
+    this.groundGrid?.destroy();
+    this.mountains?.destroy();
+    this.wireframeRenderer?.destroy();
   }
 }

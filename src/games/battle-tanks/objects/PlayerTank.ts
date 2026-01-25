@@ -7,6 +7,8 @@ import {
   DamageLevel,
   createInitialDamageState,
 } from "./TankHealth";
+import { WeaponManager } from "./weapons/WeaponManager";
+import { Weapon, FireResult, WeaponType } from "./weapons/Weapon";
 
 /**
  * Player tank with first-person camera and WASD controls
@@ -32,13 +34,10 @@ export class PlayerTank {
   // Damage state
   private damageState: TankDamageState;
 
-  // Ammo and reload state
-  private readonly maxAmmo = 10;
-  private currentAmmo: number;
-  private isReloading = false;
-  private reloadProgress = 0;
-  private readonly reloadTime = 2000; // ms
-  private reloadStartTime = 0;
+  readonly collisionRadius = 40;
+
+  // Weapon system
+  private weaponManager: WeaponManager;
 
   // Score
   private score = 0;
@@ -62,7 +61,7 @@ export class PlayerTank {
     this.rotationVelocity = 0;
 
     this.damageState = createInitialDamageState();
-    this.currentAmmo = this.maxAmmo;
+    this.weaponManager = new WeaponManager();
 
     this.setupInput();
     this.updateCamera();
@@ -86,7 +85,7 @@ export class PlayerTank {
     this.handleInput();
     this.applyMovement(dt);
     this.updateCamera();
-    this.updateReload();
+    this.weaponManager.updateAll(delta);
   }
 
   private handleInput(): void {
@@ -192,6 +191,44 @@ export class PlayerTank {
     return this.damageState[section] >= DamageLevel.DESTROYED;
   }
 
+  /**
+   * Take damage from a world position (determines which section is hit)
+   */
+  takeDamageFromPosition(projectilePos: Vector3D): TankSection {
+    // Calculate angle from player to projectile
+    const dx = projectilePos.x - this.position.x;
+    const dz = projectilePos.z - this.position.z;
+    const worldAngle = Math.atan2(dx, dz);
+
+    // Convert to relative angle (0 = in front of player)
+    let relativeAngle = worldAngle - this.rotation;
+
+    // Normalize to -PI to PI
+    while (relativeAngle > Math.PI) relativeAngle -= Math.PI * 2;
+    while (relativeAngle < -Math.PI) relativeAngle += Math.PI * 2;
+
+    // Determine section based on relative angle
+    let section: TankSection;
+    if (relativeAngle >= -Math.PI / 4 && relativeAngle < Math.PI / 4) {
+      section = "front";
+    } else if (
+      relativeAngle >= Math.PI / 4 &&
+      relativeAngle < (3 * Math.PI) / 4
+    ) {
+      section = "right";
+    } else if (
+      relativeAngle >= (-3 * Math.PI) / 4 &&
+      relativeAngle < -Math.PI / 4
+    ) {
+      section = "left";
+    } else {
+      section = "rear";
+    }
+
+    this.takeDamage(section);
+    return section;
+  }
+
   getDamageState(): TankDamageState {
     return { ...this.damageState };
   }
@@ -205,43 +242,120 @@ export class PlayerTank {
     );
   }
 
-  // Ammo methods
-  getAmmo(): { current: number; max: number } {
-    return { current: this.currentAmmo, max: this.maxAmmo };
+  /**
+   * Reset armor for new wave
+   */
+  resetArmor(): void {
+    this.damageState = createInitialDamageState();
   }
 
-  useAmmo(): boolean {
-    if (this.currentAmmo > 0 && !this.isReloading) {
-      this.currentAmmo--;
-      return true;
-    }
-    return false;
+  /**
+   * Full reset for new game
+   */
+  reset(): void {
+    this.score = 0;
+    this.position = new Vector3D(0, 0, 0);
+    this.rotation = 0;
+    this.damageState = createInitialDamageState();
+    this.weaponManager.resetAll();
+    this.velocity = 0;
+    this.targetVelocity = 0;
+    this.updateCamera();
   }
 
-  // Reload methods
-  startReload(): void {
-    if (!this.isReloading && this.currentAmmo < this.maxAmmo) {
-      this.isReloading = true;
-      this.reloadProgress = 0;
-      this.reloadStartTime = this.scene.time.now;
-    }
+  /**
+   * Get collision center position
+   */
+  getCollisionCenter(): Vector3D {
+    return new Vector3D(this.position.x, this.eyeHeight, this.position.z);
   }
 
-  updateReload(): void {
-    if (this.isReloading) {
-      const elapsed = this.scene.time.now - this.reloadStartTime;
-      this.reloadProgress = Math.min(1, elapsed / this.reloadTime);
+  /**
+   * Resolve collisions with enemies - push player out if overlapping
+   */
+  resolveCollisions(
+    enemies: Array<{
+      position: Vector3D;
+      collisionRadius: number;
+      isAlive(): boolean;
+    }>,
+  ): void {
+    for (const enemy of enemies) {
+      if (!enemy.isAlive()) continue;
 
-      if (this.reloadProgress >= 1) {
-        this.isReloading = false;
-        this.currentAmmo = this.maxAmmo;
-        this.reloadProgress = 0;
+      const dx = this.position.x - enemy.position.x;
+      const dz = this.position.z - enemy.position.z;
+      const dist = Math.sqrt(dx * dx + dz * dz);
+
+      const minDist = this.collisionRadius + enemy.collisionRadius;
+
+      if (dist < minDist && dist > 0) {
+        // Push player out
+        const overlap = minDist - dist;
+        const nx = dx / dist;
+        const nz = dz / dist;
+
+        this.position.x += nx * overlap;
+        this.position.z += nz * overlap;
+
+        // Stop forward velocity if pushing into enemy
+        if (this.velocity > 0) {
+          // Check if moving toward enemy
+          const moveAngle = this.rotation;
+          const toEnemyAngle = Math.atan2(-dx, -dz);
+          let angleDiff = moveAngle - toEnemyAngle;
+          while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+          while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+          if (Math.abs(angleDiff) < Math.PI / 2) {
+            this.velocity *= 0.5; // Reduce velocity on collision
+          }
+        }
+
+        // Update camera position
+        this.updateCamera();
       }
     }
   }
 
+  /**
+   * Resolve collisions with terrain obstacles
+   */
+  resolveTerrainCollisions(
+    checkCollision: (
+      pos: Vector3D,
+      radius: number,
+    ) => { collides: boolean; pushX: number; pushZ: number },
+  ): void {
+    const collision = checkCollision(this.position, this.collisionRadius);
+    if (collision.collides) {
+      this.position.x += collision.pushX;
+      this.position.z += collision.pushZ;
+
+      // Reduce velocity when hitting obstacle
+      if (this.velocity > 0) {
+        this.velocity *= 0.5;
+      }
+
+      // Update camera position
+      this.updateCamera();
+    }
+  }
+
+  // Ammo methods (delegates to weapon manager)
+  getAmmo(): { current: number; max: number } {
+    const display = this.weaponManager.getAmmoDisplay();
+    return { current: display.current, max: display.max };
+  }
+
+  // Reload methods
+  startReload(): void {
+    this.weaponManager.startReload();
+  }
+
   getReloadState(): { isReloading: boolean; progress: number } {
-    return { isReloading: this.isReloading, progress: this.reloadProgress };
+    const display = this.weaponManager.getReloadDisplay();
+    return { isReloading: display.isActive, progress: display.progress };
   }
 
   // Score methods
@@ -253,12 +367,42 @@ export class PlayerTank {
     this.score += points;
   }
 
-  // Fire method - returns projectile spawn info or null if can't fire
-  fire(): { position: Vector3D; direction: Vector3D } | null {
-    if (!this.useAmmo()) {
-      return null;
-    }
+  // Weapon methods
+  cycleWeaponNext(): void {
+    this.weaponManager.cycleNext();
+  }
 
+  cycleWeaponPrev(): void {
+    this.weaponManager.cyclePrev();
+  }
+
+  addWeapon(weapon: Weapon): void {
+    this.weaponManager.addWeapon(weapon);
+  }
+
+  hasWeapon(type: WeaponType): boolean {
+    return this.weaponManager.hasWeapon(type);
+  }
+
+  getWeaponManager(): WeaponManager {
+    return this.weaponManager;
+  }
+
+  getCurrentWeaponType(): WeaponType {
+    return this.weaponManager.getCurrentWeaponType();
+  }
+
+  /**
+   * Get forward direction vector
+   */
+  getForwardDirection(): Vector3D {
+    return new Vector3D(Math.sin(this.rotation), 0, Math.cos(this.rotation));
+  }
+
+  /**
+   * Fire method - returns fire result or null if can't fire
+   */
+  fire(): FireResult | null {
     // Spawn projectile at cannon position (slightly in front and above tank)
     const spawnOffset = 30; // Distance in front of tank
     const spawnHeight = this.eyeHeight; // Same as camera height
@@ -276,11 +420,23 @@ export class PlayerTank {
       Math.cos(this.rotation),
     );
 
-    // Auto-reload when empty
-    if (this.currentAmmo === 0) {
-      this.startReload();
-    }
+    return this.weaponManager.fire(spawnPos, direction);
+  }
 
-    return { position: spawnPos, direction };
+  /**
+   * Restore armor by amount (for pickups)
+   */
+  restoreArmor(amount: number = 1): boolean {
+    let restored = false;
+    for (const section of ["front", "rear", "left", "right"] as TankSection[]) {
+      if (this.damageState[section] > 0) {
+        this.damageState[section] = Math.max(
+          0,
+          this.damageState[section] - amount,
+        );
+        restored = true;
+      }
+    }
+    return restored;
   }
 }

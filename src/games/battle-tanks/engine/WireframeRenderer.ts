@@ -28,6 +28,7 @@ export class WireframeRenderer {
 
   /**
    * Render a wireframe model at a given position and rotation
+   * @param colorOverride Optional color to use instead of model color
    */
   render(
     model: WireframeModel,
@@ -35,7 +36,10 @@ export class WireframeRenderer {
     rotation: number,
     screenW: number,
     screenH: number,
+    colorOverride?: number,
   ): void {
+    const useColor = colorOverride ?? model.color;
+
     // Transform all vertices to world space, then project to screen
     const screenPoints: (ScreenPoint | null)[] = model.vertices.map(
       (vertex) => {
@@ -58,12 +62,12 @@ export class WireframeRenderer {
           screenH,
         );
         if (clipped) {
-          this.drawLine(clipped[0], clipped[1], edge.color ?? model.color);
+          this.drawLine(clipped[0], clipped[1], edge.color ?? useColor);
         }
         continue;
       }
 
-      this.drawLine(p1, p2, edge.color ?? model.color);
+      this.drawLine(p1, p2, edge.color ?? useColor);
     }
   }
 

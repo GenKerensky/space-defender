@@ -1,33 +1,98 @@
 import { Vector3D } from "../engine/Vector3D";
-import { EnemyManager } from "./EnemyManager";
+import { EnemyManager, DifficultyConfig } from "./EnemyManager";
 
-export type WaveState = "active" | "complete" | "starting";
+export type WaveState = "active" | "complete" | "starting" | "transition";
+
+// Player limits - enemies should never exceed these
+const PLAYER_LIMITS = {
+  maxSpeed: 150,
+  projectileSpeed: 800,
+  reloadTime: 2000, // minimum fire rate
+};
 
 /**
- * Manages wave-based enemy spawning
+ * Manages wave-based enemy spawning with difficulty scaling
  */
 export class WaveSystem {
   private waveNumber = 0;
   private state: WaveState = "starting";
-  private waveStartDelay = 2000; // ms before wave starts
 
-  private readonly minSpawnDistance = 500;
-  private readonly maxSpawnDistance = 1500;
+  private readonly minSpawnDistance = 800;
+  private readonly maxSpawnDistance = 1800;
 
   constructor(private enemyManager: EnemyManager) {}
 
   /**
-   * Start a new wave
+   * Start a new wave immediately (called after transition completes)
    */
   startWave(playerPosition: Vector3D): void {
     this.waveNumber++;
-    this.state = "starting";
 
-    // Spawn enemies after delay
-    setTimeout(() => {
-      this.spawnWaveEnemies(playerPosition);
-      this.state = "active";
-    }, this.waveStartDelay);
+    // Apply difficulty scaling
+    this.applyDifficulty();
+
+    // Spawn enemies
+    this.spawnWaveEnemies(playerPosition);
+    this.state = "active";
+  }
+
+  /**
+   * Set state to transition (used by WaveTransition)
+   */
+  setTransitioning(): void {
+    this.state = "transition";
+  }
+
+  /**
+   * Apply difficulty scaling based on wave number
+   * All stats capped at player limits
+   */
+  private applyDifficulty(): void {
+    const config = this.getDifficultyForWave(this.waveNumber);
+    this.enemyManager.setDifficulty(config);
+  }
+
+  /**
+   * Get difficulty configuration for a wave
+   */
+  private getDifficultyForWave(wave: number): DifficultyConfig {
+    // Base values (Wave 1-3: Easy)
+    let fireRate = 4000; // 4 seconds between shots
+    let tankPatrolSpeed = 40;
+    let tankHuntSpeed = 80;
+    let projectileSpeed = 350;
+    let detectionRange = 800;
+
+    if (wave >= 4 && wave <= 6) {
+      // Medium difficulty
+      fireRate = 3000;
+      tankPatrolSpeed = 60;
+      tankHuntSpeed = 100;
+      projectileSpeed = 500;
+      detectionRange = 1000;
+    } else if (wave >= 7) {
+      // Hard difficulty - scale up but cap at player limits
+      const hardWave = wave - 6;
+      fireRate = Math.max(PLAYER_LIMITS.reloadTime, 3000 - hardWave * 100);
+      tankPatrolSpeed = Math.min(
+        PLAYER_LIMITS.maxSpeed * 0.6,
+        60 + hardWave * 10,
+      );
+      tankHuntSpeed = Math.min(PLAYER_LIMITS.maxSpeed, 100 + hardWave * 10);
+      projectileSpeed = Math.min(
+        PLAYER_LIMITS.projectileSpeed,
+        500 + hardWave * 50,
+      );
+      detectionRange = Math.min(1500, 1000 + hardWave * 50);
+    }
+
+    return {
+      fireRate,
+      tankPatrolSpeed,
+      tankHuntSpeed,
+      projectileSpeed,
+      detectionRange,
+    };
   }
 
   /**
@@ -67,9 +132,15 @@ export class WaveSystem {
       case 5:
         return { turrets: 4, tanks: 3 };
       default: {
-        // Scale up for later waves
-        const baseTurrets = 4 + Math.floor((this.waveNumber - 5) * 0.5);
-        const baseTanks = 3 + Math.floor((this.waveNumber - 5) * 0.5);
+        // Scale up for later waves, but cap at reasonable numbers
+        const baseTurrets = Math.min(
+          8,
+          4 + Math.floor((this.waveNumber - 5) * 0.5),
+        );
+        const baseTanks = Math.min(
+          6,
+          3 + Math.floor((this.waveNumber - 5) * 0.5),
+        );
         return { turrets: baseTurrets, tanks: baseTanks };
       }
     }

@@ -15,7 +15,7 @@ export class Pause extends Scene {
     overlay.fillStyle(0x000000, 0.7);
     overlay.fillRect(0, 0, width, height);
 
-    const pauseText = this.add.text(width / 2, height * 0.35, "PAUSED", {
+    const pauseText = this.add.text(width / 2, height * 0.28, "PAUSED", {
       fontFamily: font,
       fontSize: "56px",
       color: "#00ff00",
@@ -26,7 +26,7 @@ export class Pause extends Scene {
 
     const resumeText = this.add.text(
       width / 2,
-      height * 0.5,
+      height * 0.37,
       "PRESS ESC TO RESUME",
       {
         fontFamily: font,
@@ -44,8 +44,36 @@ export class Pause extends Scene {
       repeat: -1,
     });
 
+    // Controls hint
     this.add
-      .text(width / 2, height * 0.58, "PRESS Q TO QUIT", {
+      .text(width / 2, height * 0.46, "CONTROLS", {
+        fontFamily: font,
+        fontSize: "20px",
+        color: "#00ff00",
+      })
+      .setOrigin(0.5);
+
+    const controls = [
+      "W / ↑  -  Forward",
+      "S / ↓  -  Reverse",
+      "A / ←  -  Turn Left",
+      "D / →  -  Turn Right",
+      "SPACE  -  Fire",
+      "R  -  Reload",
+    ];
+
+    this.add
+      .text(width / 2, height * 0.58, controls.join("\n"), {
+        fontFamily: font,
+        fontSize: "16px",
+        color: "#aaaaaa",
+        align: "center",
+        lineSpacing: 4,
+      })
+      .setOrigin(0.5);
+
+    this.add
+      .text(width / 2, height * 0.76, "PRESS Q TO QUIT", {
         fontFamily: font,
         fontSize: "16px",
         color: "#888888",
