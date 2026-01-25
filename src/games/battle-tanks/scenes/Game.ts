@@ -46,7 +46,7 @@ export class Game extends Scene {
     this.cameras.main.setPostPipeline("VectorShader");
 
     this.atmosphere = new Atmosphere();
-    this.atmosphere.create(this, 0x002200);
+    this.atmosphere.create(this, 0x004400); // Green-tinted horizon glow
 
     this.starfield = new Starfield();
     this.starfield.create(this);
@@ -127,7 +127,7 @@ export class Game extends Scene {
     this.screenShake.explosion();
   }
 
-  update(time: number, delta: number): void {
+  update(_time: number, delta: number): void {
     const { width, height } = this.cameras.main;
 
     this.tank.update(delta);
@@ -154,7 +154,7 @@ export class Game extends Scene {
     const pos = this.tank.getPosition();
     this.hud.update(this.tank.getVelocity(), pos.x, pos.z);
 
-    this.starfield.update(time);
+    this.starfield.update(this.tank.getRotation());
   }
 
   shutdown(): void {

@@ -8,11 +8,15 @@ import { COLORS } from "../models/models";
  */
 export class GroundGrid {
   private graphics: Phaser.GameObjects.Graphics;
+  private fadeOverlay: Phaser.GameObjects.Graphics;
+  private tankGlow: Phaser.GameObjects.Graphics;
   private camera: Camera3D;
   private gridSize: number;
   private gridExtent: number;
   private lineColor: number;
   private groundY: number;
+  private screenW: number;
+  private screenH: number;
 
   constructor(
     scene: Phaser.Scene,
@@ -22,11 +26,64 @@ export class GroundGrid {
   ) {
     this.graphics = scene.add.graphics();
     this.graphics.setDepth(1);
+
+    this.fadeOverlay = scene.add.graphics();
+    this.fadeOverlay.setDepth(2); // Above grid lines
+
+    this.tankGlow = scene.add.graphics();
+    this.tankGlow.setDepth(0); // Below grid lines
+
     this.camera = camera;
     this.gridSize = gridSize;
     this.gridExtent = gridExtent;
     this.lineColor = COLORS.grid;
     this.groundY = 0;
+
+    const { width, height } = scene.cameras.main;
+    this.screenW = width;
+    this.screenH = height;
+
+    this.createFadeOverlay();
+    this.createTankGlow();
+  }
+
+  private createFadeOverlay(): void {
+    const horizonY = this.screenH / 2;
+    const groundHeight = this.screenH - horizonY;
+
+    // Gradient from black (at horizon) to transparent (at bottom)
+    const steps = 40;
+    for (let i = 0; i < steps; i++) {
+      const progress = i / steps;
+      const y = horizonY + progress * groundHeight;
+      const h = groundHeight / steps + 1;
+
+      // Fade from opaque black to transparent
+      const alpha = Math.pow(1 - progress, 2) * 0.95;
+
+      this.fadeOverlay.fillStyle(0x000000, alpha);
+      this.fadeOverlay.fillRect(0, y, this.screenW, h);
+    }
+  }
+
+  private createTankGlow(): void {
+    // Linear gradient from bottom (tank) toward horizon
+    const horizonY = this.screenH / 2;
+    const groundHeight = this.screenH - horizonY;
+
+    // Draw horizontal strips from bottom to horizon
+    const steps = 30;
+    for (let i = 0; i < steps; i++) {
+      const progress = i / steps;
+      const y = this.screenH - progress * groundHeight;
+      const h = groundHeight / steps + 1;
+
+      // Fade from visible at bottom to transparent toward horizon
+      const alpha = (1 - progress) * 0.07;
+
+      this.tankGlow.fillStyle(0x00ff00, alpha);
+      this.tankGlow.fillRect(0, y - h, this.screenW, h);
+    }
   }
 
   setCamera(camera: Camera3D): void {
@@ -123,10 +180,7 @@ export class GroundGrid {
 
     if (!screenP1 || !screenP2) return;
 
-    const avgDepth = (clippedP1.z + clippedP2.z) / 2;
-    const alpha = Math.max(0.1, Math.min(0.8, 1 - avgDepth / this.gridExtent));
-
-    this.graphics.lineStyle(1, this.lineColor, alpha);
+    this.graphics.lineStyle(3, this.lineColor, 0.85);
     this.graphics.beginPath();
     this.graphics.moveTo(screenP1.x, screenP1.y);
     this.graphics.lineTo(screenP2.x, screenP2.y);
@@ -152,5 +206,7 @@ export class GroundGrid {
 
   destroy(): void {
     this.graphics.destroy();
+    this.fadeOverlay.destroy();
+    this.tankGlow.destroy();
   }
 }

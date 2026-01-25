@@ -76,11 +76,36 @@ export class Mountains {
 
     visiblePeaks.sort((a, b) => a.screenPoint.x - b.screenPoint.x);
 
-    // Draw mountain silhouette
-    this.graphics.lineStyle(2, this.color, 0.8);
+    const horizonY = screenH / 2;
+
+    // Draw filled black mountain silhouette
+    this.graphics.fillStyle(0x000000, 1);
     this.graphics.beginPath();
 
     const first = visiblePeaks[0];
+    // Start at horizon on the left
+    this.graphics.moveTo(first.screenPoint.x, horizonY);
+    // Go up to first peak
+    this.graphics.lineTo(first.screenPoint.x, first.screenPoint.y);
+
+    // Draw along all peaks
+    for (let i = 1; i < visiblePeaks.length; i++) {
+      const current = visiblePeaks[i];
+      this.graphics.lineTo(current.screenPoint.x, current.screenPoint.y);
+    }
+
+    // Go down to horizon on the right
+    const last = visiblePeaks[visiblePeaks.length - 1];
+    this.graphics.lineTo(last.screenPoint.x, horizonY);
+
+    // Close the path along the horizon
+    this.graphics.closePath();
+    this.graphics.fillPath();
+
+    // Draw mountain outline on top
+    this.graphics.lineStyle(2, this.color, 0.8);
+    this.graphics.beginPath();
+
     this.graphics.moveTo(first.screenPoint.x, first.screenPoint.y);
 
     for (let i = 1; i < visiblePeaks.length; i++) {
@@ -91,7 +116,6 @@ export class Mountains {
     this.graphics.strokePath();
 
     // Vertical lines from tall peaks
-    const horizonY = screenH / 2;
     this.graphics.lineStyle(1, this.color, 0.4);
 
     for (const { screenPoint, peak } of visiblePeaks) {
