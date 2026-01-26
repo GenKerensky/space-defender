@@ -9,9 +9,9 @@
     "./shaders": "./src/shaders/index.ts"
   },
   "peerDependencies": {
-    "phaser": "^3.90.0"
+    "phaser": "catalog:"
   },
   "devDependencies": {
-    "phaser": "^3.90.0"
+    "phaser": "catalog:"
   }
 }
